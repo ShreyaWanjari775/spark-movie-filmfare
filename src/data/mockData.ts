@@ -152,6 +152,7 @@ export const MOCK_CATEGORIES: Category[] = [
   {
     id: "cat_scifi",
     title: "Best Sci-Fi",
+    isRequired: true,
     tagline: "Visions of the Cosmos & Beyond",
     description: "Honouring mind-expanding speculative universes, cosmic odysseys, and technological wonders.",
     icon: "Rocket",
@@ -165,6 +166,7 @@ export const MOCK_CATEGORIES: Category[] = [
   {
     id: "cat_horror",
     title: "Best Horror",
+    isRequired: true,
     tagline: "Spine-Chilling Nightmares",
     description: "The most gripping, dread-inducing cinematic experiences that made hearts pound.",
     icon: "Ghost",
@@ -176,6 +178,7 @@ export const MOCK_CATEGORIES: Category[] = [
   {
     id: "cat_action",
     title: "Best Action",
+    isRequired: true,
     tagline: "Pure Adrenaline & Spectacle",
     description: "Pulse-pounding stunts, relentless pacing, and masterfully choreographed cinematic set-pieces.",
     icon: "Flame",
@@ -189,6 +192,7 @@ export const MOCK_CATEGORIES: Category[] = [
   {
     id: "cat_thriller",
     title: "Best Thriller",
+    isRequired: true,
     tagline: "High Stakes & Psychological Edge",
     description: "Edge-of-the-seat tension, intricate plotting, and psychological suspense.",
     icon: "Eye",
@@ -202,6 +206,7 @@ export const MOCK_CATEGORIES: Category[] = [
   {
     id: "cat_comedy",
     title: "Best Comedy",
+    isRequired: true,
     tagline: "Wit, Charm & Crowd Roars",
     description: "Films that brought contagious laughter, clever satire, and unforgettable punchlines.",
     icon: "Smile",
@@ -213,6 +218,7 @@ export const MOCK_CATEGORIES: Category[] = [
   {
     id: "cat_animated",
     title: "Best Animated",
+    isRequired: true,
     tagline: "Artistry in Every Frame",
     description: "Visual marvels transcending reality through breathtaking artistry and imagination.",
     icon: "Sparkles",

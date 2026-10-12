@@ -58,7 +58,7 @@ export const TeaserVideoModal: React.FC<TeaserVideoModalProps> = ({
                 FnC MOVIE NIGHT • OFFICIAL TEASER
               </h3>
               <p className="text-[10px] text-[#a5f3fc]/60 tracking-widest uppercase">
-                SPark Cultural Committee
+                SPark Editorial Committee
               </p>
             </div>
           </div>

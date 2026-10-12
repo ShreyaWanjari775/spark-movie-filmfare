@@ -10,9 +10,6 @@ export const FlameLoader: React.FC<FlameLoaderProps> = ({
   onComplete
 }) => {
   return (
-    <FlameIntro 
-      onComplete={onComplete}
-      forcePlay={true}
-    />
+    <FlameIntro onComplete={onComplete} forcePlay />
   );
 };

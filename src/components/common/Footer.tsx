@@ -28,7 +28,7 @@ export const Footer: React.FC = () => {
               </div>
             </div>
             <p className="text-xs text-[#a5f3fc]/60 leading-relaxed max-w-sm">
-              The flagship cinematic awards campaign presented by the SPark Cultural Society for FnC Movie Night. Celebrating the films that defined our collective imagination.
+              The SPark Editorial Committee presents Movie Filmfare for FnC Movie Night, celebrating the films that defined our collective imagination.
             </p>
           </div>
 
@@ -61,7 +61,7 @@ export const Footer: React.FC = () => {
               Fair Play Guarantee
             </h4>
             <p className="text-xs text-[#a5f3fc]/60 leading-relaxed">
-              Every sealed ballot is recorded with cryptographic integrity. Organizers will unveil certified audience vote counts on the big screen during the live screening.
+              A successful ballot is remembered in this browser to deter casual repeat voting. This does not verify voter identity. Results are revealed when authorized organizers publish them.
             </p>
           </div>
         </div>
@@ -69,7 +69,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Credits */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#a5f3fc]/50 gap-4">
           <p>
-            © {new Date().getFullYear()} SPark Cultural Committee • FnC Movie Night. All rights reserved.
+            © {new Date().getFullYear()} SPark Editorial Committee • FnC Movie Night. All rights reserved.
           </p>
           <p className="flex items-center gap-1.5 text-xs text-[#a5f3fc]/70">
             Crafted with passion for cinema by SPark

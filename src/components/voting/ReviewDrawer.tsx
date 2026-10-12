@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { X, Check, AlertCircle, Sparkles, CheckCircle2, Loader2 } from 'lucide-react';
 import type { Category, Movie } from '../../types';
 import { MOVIES } from '../../data/mockData';
@@ -27,12 +27,14 @@ export const ReviewDrawer: React.FC<ReviewDrawerProps> = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const submitInProgress = useRef(false);
 
   if (!isOpen) return null;
 
   const totalCategories = categories.length;
   const selectedCount = Object.keys(selectedPicks).length;
-  const isComplete = selectedCount === totalCategories && totalCategories > 0;
+  const requiredCategories = categories.filter((category) => category.isRequired);
+  const isComplete = selectedCount > 0 && requiredCategories.every((category) => selectedPicks[category.id]);
 
   // Helper to find movie object by id across all nominees
   const getMovieById = (movieId: string): Movie | undefined => {
@@ -44,24 +46,24 @@ export const ReviewDrawer: React.FC<ReviewDrawerProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!isComplete || isSubmitting || hasAlreadyVoted) return;
+    if (!isComplete || submitInProgress.current || hasAlreadyVoted) return;
 
+    submitInProgress.current = true;
     setIsSubmitting(true);
     setSubmitError(null);
 
-    const result = await submitAnonymousBallot(selectedPicks, categories);
+    try {
+      const result = await submitAnonymousBallot(selectedPicks, categories);
 
-    setIsSubmitting(false);
-
-    if (result.success) {
-      if (onVoteSuccess) {
-        onVoteSuccess();
+      if (result.success) {
+        onVoteSuccess?.();
+        onConfirmBallot?.();
+      } else {
+        setSubmitError(result.error || 'Failed to submit ballot. Please try again.');
       }
-      if (onConfirmBallot) {
-        onConfirmBallot();
-      }
-    } else {
-      setSubmitError(result.error || 'Failed to submit ballot. Please try again.');
+    } finally {
+      submitInProgress.current = false;
+      setIsSubmitting(false);
     }
   };
 
@@ -169,13 +171,13 @@ export const ReviewDrawer: React.FC<ReviewDrawerProps> = ({
               <div>
                 <p className="font-semibold text-white">Ballot Already Recorded</p>
                 <p className="text-[11px] text-[#a5f3fc]/70 mt-0.5">
-                  You have already submitted a ballot from this browser. Thank you for voting!
+                  You've already voted on this browser. Thank you for voting!
                 </p>
               </div>
             </div>
           ) : (
             <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-[#062831]/40 border border-[#00c2e0]/20 text-[11px] text-[#a5f3fc]/80">
-              <span>Anonymous voting enabled • 1 ballot per browser</span>
+              <span>Anonymous voting • browser-based duplicate-vote deterrence</span>
               <span className="text-[10px] uppercase font-bold text-[#00f5d4] px-1.5 py-0.5 rounded bg-[#00f5d4]/10 border border-[#00f5d4]/30">
                 Direct
               </span>
@@ -195,7 +197,7 @@ export const ReviewDrawer: React.FC<ReviewDrawerProps> = ({
 
           {!isComplete && !hasAlreadyVoted && (
             <p className="text-center text-xs text-[#a5f3fc]/70">
-              Please choose a movie in all {totalCategories} categories to submit your ballot.
+              Please complete all required categories before submitting your ballot.
             </p>
           )}
 

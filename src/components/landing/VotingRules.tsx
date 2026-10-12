@@ -10,8 +10,8 @@ export const VotingRules: React.FC = () => {
     },
     {
       icon: <CheckCircle2 className="w-5 h-5 text-[#00f5d4]" />,
-      title: "One Choice Per Genre",
-      desc: "Select exactly one film per award category. You must make a selection across all active genres to seal your ballot."
+      title: "One Choice Per Category",
+      desc: "Select one film in every required active category. Optional categories may be left blank."
     },
     {
       icon: <Shuffle className="w-5 h-5 text-[#a5f3fc]" />,
@@ -20,8 +20,8 @@ export const VotingRules: React.FC = () => {
     },
     {
       icon: <Lock className="w-5 h-5 text-[#00c2e0]" />,
-      title: "One Sealed Ballot",
-      desc: "Each voter submits a single complete ballot. Ensure your selections are final before locking your vote."
+      title: "Browser-Based Deterrence",
+      desc: "A successful ballot is remembered in this browser to deter casual repeat voting. This is not identity verification, and another browser or cleared storage can submit again."
     },
     {
       icon: <Eye className="w-5 h-5 text-[#00f5d4]" />,

@@ -10,8 +10,8 @@ import { FloatingVoteBar } from './components/voting/FloatingVoteBar';
 import { MovieModal } from './components/common/MovieModal';
 import { ReviewDrawer } from './components/voting/ReviewDrawer';
 import { PostVoteSequence } from './components/postvote/PostVoteSequence';
-import { AuthModal } from './components/auth/AuthModal';
 import { fetchVotingCategories } from './lib/votingData';
+import { hasAlreadyVoted } from './lib/votingStorage';
 import type { Category, Movie } from './types';
 
 export function App() {
@@ -23,7 +23,8 @@ export function App() {
     }
     return true;
   });
-  const [forcePlayIntro, setForcePlayIntro] = useState(false);
+  const [view, setView] = useState<'home' | 'event' | 'voting' | 'rules'>('home');
+  const [returnView, setReturnView] = useState<'event' | 'voting'>('voting');
 
   // Dynamic Supabase Categories & Nominees state
   const [categories, setCategories] = useState<Category[]>([]);
@@ -39,6 +40,7 @@ export function App() {
   // Modal drawers
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [isPostVoteOpen, setIsPostVoteOpen] = useState(false);
+  const [hasVoted, setHasVoted] = useState(hasAlreadyVoted);
 
   // Fetch active categories and eligible nominees from Supabase
   const loadCategories = useCallback(async () => {
@@ -76,12 +78,14 @@ export function App() {
     });
   };
 
-  // Scroll to categories voting area
-  const scrollToCategories = () => {
-    const el = document.getElementById('categories');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
+  const navigateToView = (nextView: 'home' | 'event' | 'voting' | 'rules') => {
+    setView(nextView);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const openRules = (fromView: 'event' | 'voting') => {
+    setReturnView(fromView);
+    navigateToView('rules');
   };
 
   // Handle final sealing of ballot (Phase 1 preview sequence)
@@ -90,21 +94,13 @@ export function App() {
     setIsPostVoteOpen(true);
   };
 
-  // Trigger manual intro replay
-  const handleReplayIntro = () => {
-    setForcePlayIntro(true);
-    setShowFlameIntro(true);
-  };
-
   return (
     <div className="min-h-screen bg-[#030712] text-[#e0f7fa] relative selection:bg-[#00c2e0]/30 selection:text-white">
       {/* 1. Cinematic Flame Intro — The Flame Awakens */}
       {showFlameIntro && (
         <FlameIntro 
-          forcePlay={forcePlayIntro}
           onComplete={() => {
             setShowFlameIntro(false);
-            setForcePlayIntro(false);
           }} 
         />
       )}
@@ -113,47 +109,97 @@ export function App() {
       <div className={`transition-opacity duration-1000 ${showFlameIntro ? 'opacity-0' : 'opacity-100'}`}>
         {/* Navigation Bar */}
         <Navbar 
-          onVoteClick={scrollToCategories} 
-          onReplayIntro={handleReplayIntro}
+          onHomeClick={() => navigateToView('home')}
+          onEventClick={() => navigateToView('event')}
+          onAwardsClick={() => navigateToView('voting')}
         />
 
         <main>
-          {/* Cinematic FnC Reveal Hero (The Star of the Experience) */}
-          <HeroSection 
-            onCastVoteClick={scrollToCategories}
-            onExploreClick={scrollToCategories}
-            eyebrow="SPARK CULTURAL COMMITTEE PRESENTS"
-            heading="FnC MOVIE NIGHT"
-            supportingLine="THE NIGHT BELONGS ON THE BIG SCREEN."
-          />
+          {view === 'home' && (
+            <HeroSection
+              onCastVoteClick={() => navigateToView('voting')}
+              onExploreClick={() => navigateToView('event')}
+              eyebrow="SPARK EDITORIAL COMMITTEE PRESENTS"
+              heading="MOVIE FILMFARE"
+              supportingLine="FNC MOVIE NIGHT AWARDS"
+              tagline="Every genre has a legend. Every legend deserves its moment."
+              description="The ultimate college cinema ballot. Pick your champions across genre categories, then watch the winners take the spotlight at Movie Night."
+            />
+          )}
 
-          {/* Genre Award Categories & Movie Nominees (Loaded directly from Supabase) */}
-          <GenreShowcase
-            categories={categories}
-            onMovieClick={(movie) => setInspectedMovie(movie)}
-            selectedPicks={selectedPicks}
-            onSelectMovie={handleSelectMovie}
-            isLoading={isLoadingCategories}
-            error={categoriesError}
-            onRetry={loadCategories}
-          />
+          {view === 'event' && (
+            <>
+              <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 pt-8 sm:px-6 lg:px-8">
+                <h1 className="font-['Cinzel',serif] text-xl font-bold text-white">The Event</h1>
+                <button type="button" onClick={() => openRules('event')} className="rounded-lg border border-[#00c2e0]/35 px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#a5f3fc] transition hover:border-[#00f5d4]/60 hover:text-white">Voting Rules</button>
+              </div>
+              <EventTeaserBanner onVoteClick={() => navigateToView('voting')} />
+              <Footer />
+            </>
+          )}
 
-          {/* FnC Cultural Event Teaser Banner */}
-          <EventTeaserBanner onVoteClick={scrollToCategories} />
+          {view === 'voting' && (
+            <>
+              <div id="categories" className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 pt-8 sm:px-6 lg:px-8">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#00f5d4]">SPark Movie Filmfare</p>
+                  <h1 className="mt-1 font-['Cinzel',serif] text-2xl font-bold text-white">Choose your champions</h1>
+                </div>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => openRules('voting')} className="rounded-lg border border-[#00c2e0]/35 px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#a5f3fc] transition hover:border-[#00f5d4]/60 hover:text-white">Voting Rules</button>
+                  <button type="button" onClick={() => navigateToView('home')} className="rounded-lg border border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#a5f3fc]/70 transition hover:border-[#00c2e0]/40 hover:text-white">Home</button>
+                </div>
+              </div>
+              {isLoadingCategories || categoriesError || categories.length === 0 ? (
+                <GenreShowcase
+                  categories={categories}
+                  onMovieClick={(movie) => setInspectedMovie(movie)}
+                  selectedPicks={selectedPicks}
+                  onSelectMovie={handleSelectMovie}
+                  isLoading={isLoadingCategories}
+                  error={categoriesError}
+                  onRetry={loadCategories}
+                  showCategoryTabs={false}
+                />
+              ) : (
+                categories.map((category) => (
+                  <GenreShowcase
+                    key={category.id}
+                    categories={[category]}
+                    onMovieClick={(movie) => setInspectedMovie(movie)}
+                    selectedPicks={selectedPicks}
+                    onSelectMovie={handleSelectMovie}
+                    showIntro={false}
+                    showCategoryTabs={false}
+                  />
+                ))
+              )}
+            </>
+          )}
 
-          {/* Rules & Fair Play Section */}
-          <VotingRules />
+          {view === 'rules' && (
+            <>
+              <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 pt-8 sm:px-6 lg:px-8">
+                <h1 className="font-['Cinzel',serif] text-xl font-bold text-white">Voting Rules</h1>
+                <button type="button" onClick={() => navigateToView(returnView)} className="rounded-lg border border-[#00c2e0]/35 px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#a5f3fc] transition hover:border-[#00f5d4]/60 hover:text-white">Back</button>
+              </div>
+              <VotingRules />
+            </>
+          )}
         </main>
 
-        {/* Footer */}
-        <Footer />
+        {view === 'home' && <EventTeaserBanner onVoteClick={() => navigateToView('voting')} />}
 
         {/* Sticky Mobile/Desktop Voting Action Bar */}
-        <FloatingVoteBar
-          totalCategories={categories.length}
-          selectedCount={Object.keys(selectedPicks).length}
-          onReviewClick={() => setIsReviewOpen(true)}
-        />
+        {view === 'voting' && (
+          <FloatingVoteBar
+            totalCategories={categories.length}
+            selectedCount={Object.keys(selectedPicks).length}
+            requiredCount={categories.filter((category) => category.isRequired).length}
+            selectedRequiredCount={categories.filter((category) => category.isRequired && selectedPicks[category.id]).length}
+            onReviewClick={() => setIsReviewOpen(true)}
+          />
+        )}
 
         {/* Movie Synopsis & Details Modal */}
         <MovieModal
@@ -168,9 +214,11 @@ export function App() {
           categories={categories}
           selectedPicks={selectedPicks}
           onCategoryClick={() => {
-            scrollToCategories();
+            navigateToView('voting');
           }}
           onConfirmBallot={handleConfirmBallot}
+          hasAlreadyVoted={hasVoted}
+          onVoteSuccess={() => setHasVoted(true)}
         />
 
         {/* Post-Vote 3-Act Cinematic Teaser Sequence */}
@@ -180,8 +228,6 @@ export function App() {
           selectedCount={Object.keys(selectedPicks).length}
         />
 
-        {/* SPIT Student Verification & Sign-In Modal */}
-        <AuthModal />
       </div>
     </div>
   );

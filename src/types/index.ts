@@ -13,6 +13,7 @@ export interface Movie {
 export interface Category {
   id: string;
   title: string;
+  isRequired: boolean;
   tagline: string;
   description: string;
   icon: string;

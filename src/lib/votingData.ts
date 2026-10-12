@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { hasAlreadyVoted, markBallotSubmitted } from './votingStorage';
 import type { Category, Movie } from '../types';
 
 interface DatabaseCategory {
@@ -125,6 +126,7 @@ export async function fetchVotingCategories(): Promise<Category[]> {
     return {
       id: category.id,
       title: formattedTitle,
+      isRequired: category.is_required,
       tagline: meta.tagline,
       description: meta.description,
       icon: meta.icon,
@@ -147,8 +149,6 @@ export async function submitAnonymousBallot(
   picks: Record<string, string>,
   categories: Category[]
 ): Promise<SubmitBallotResult> {
-  const { hasAlreadyVoted, markBallotSubmitted, getVoterToken } = await import('./votingStorage');
-
   // 1. Guard against casual duplicate submissions on the current browser
   if (hasAlreadyVoted()) {
     return {
@@ -158,12 +158,13 @@ export async function submitAnonymousBallot(
   }
 
   // 2. Validate that each category has a selection
-  const missingCategories = categories.filter((cat) => !picks[cat.id]);
+  const missingCategories = categories.filter((cat) => cat.isRequired && !picks[cat.id]);
   if (missingCategories.length > 0) {
-    return {
-      success: false,
-      error: `Please select a movie for all categories before submitting (${missingCategories.length} remaining).`,
-    };
+    return { success: false, error: `Please complete all required categories (${missingCategories.length} remaining).` };
+  }
+
+  if (Object.keys(picks).length === 0) {
+    return { success: false, error: 'Please select at least one nominee before submitting.' };
   }
 
   // 3. Format payload for the submit_ballot database RPC
@@ -172,13 +173,8 @@ export async function submitAnonymousBallot(
     nominee_id: nomineeId,
   }));
 
-  const voterToken = getVoterToken();
-
   try {
-    const { data, error } = await supabase.rpc('submit_ballot', {
-      p_choices: choices,
-      p_voter_token: voterToken,
-    });
+    const { data, error } = await supabase.rpc('submit_ballot', { p_choices: choices });
 
     if (error) {
       console.warn('Ballot submission RPC error:', error);
@@ -188,7 +184,7 @@ export async function submitAnonymousBallot(
       };
     }
 
-    const res = data as { success?: boolean; ballot_id?: string } | null;
+    const res = data as { success?: boolean } | null;
     if (!res || !res.success) {
       return {
         success: false,
@@ -197,12 +193,9 @@ export async function submitAnonymousBallot(
     }
 
     // 4. Mark successful ballot in localStorage ONLY AFTER confirmed database insert
-    markBallotSubmitted(res.ballot_id);
+    markBallotSubmitted();
 
-    return {
-      success: true,
-      ballotId: res.ballot_id,
-    };
+    return { success: true };
   } catch (err) {
     console.error('Unexpected error submitting ballot:', err);
     return {

@@ -6,10 +6,7 @@ interface FlameIntroProps {
   forcePlay?: boolean;
 }
 
-export const FlameIntro: React.FC<FlameIntroProps> = ({ 
-  onComplete,
-  forcePlay = false 
-}) => {
+export const FlameIntro: React.FC<FlameIntroProps> = ({ onComplete, forcePlay = false }) => {
   // Animation timeline state (0 to 1 progress)
   const [progress, setProgress] = useState(0);
   const [isTransitioningOut, setIsTransitioningOut] = useState(false);
@@ -37,7 +34,7 @@ export const FlameIntro: React.FC<FlameIntroProps> = ({
       return;
     }
 
-    // 2. Play once per browser session unless forced
+    // 2. Play once per browser session
     if (!forcePlay && sessionStorage.getItem('spark_intro_seen') === 'true') {
       finishIntro();
       return;
@@ -59,19 +56,10 @@ export const FlameIntro: React.FC<FlameIntroProps> = ({
 
     animationFrameRef.current = requestAnimationFrame(step);
 
-    // Keyboard support: Escape key skips
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        finishIntro();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
-      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [finishIntro, forcePlay]);
 
@@ -137,7 +125,7 @@ export const FlameIntro: React.FC<FlameIntroProps> = ({
           }}
         >
           <p className="text-[10px] sm:text-[11px] tracking-[0.35em] uppercase font-semibold text-[#a5f3fc]/80 mb-1">
-            SPark Cultural Committee
+            SPark Editorial Committee
           </p>
           <h1 className="font-['Cinzel',serif] text-xl sm:text-2xl font-bold tracking-[0.2em] uppercase text-white drop-shadow-[0_0_15px_rgba(0,194,224,0.6)]">
             Movie Filmfare
@@ -145,7 +133,7 @@ export const FlameIntro: React.FC<FlameIntroProps> = ({
           <div className="flex items-center justify-center gap-2 mt-2">
             <span className="h-[1px] w-6 bg-gradient-to-r from-transparent to-[#00c2e0]/60" />
             <span className="text-[10px] tracking-[0.28em] uppercase text-[#00f5d4] font-semibold">
-              FnC Movie Night
+              FnC Movie Night Awards
             </span>
             <span className="h-[1px] w-6 bg-gradient-to-l from-transparent to-[#00c2e0]/60" />
           </div>
@@ -159,14 +147,6 @@ export const FlameIntro: React.FC<FlameIntroProps> = ({
         }`}
       />
 
-      {/* 5. ACCESSIBLE SKIP BUTTON */}
-      <button
-        onClick={finishIntro}
-        className="absolute top-6 right-6 z-40 px-3.5 py-1.5 rounded-full bg-[#030712]/70 hover:bg-[#062831] border border-[#00c2e0]/30 hover:border-[#00f5d4]/50 text-[10px] sm:text-xs uppercase tracking-widest text-[#a5f3fc]/80 hover:text-white transition-all backdrop-blur-md"
-        aria-label="Skip cinematic introduction"
-      >
-        Skip <span className="opacity-50 ml-1">Esc</span>
-      </button>
     </div>
   );
 };

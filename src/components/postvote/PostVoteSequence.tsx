@@ -66,7 +66,7 @@ export const PostVoteSequence: React.FC<PostVoteSequenceProps> = ({
               BALLOT SEALED.
             </h2>
             <p className="text-xs text-[#a5f3fc]/70 font-light max-w-xs mx-auto">
-              Your votes across {selectedCount} genres are locked and cryptographically registered.
+              Your ballot with {selectedCount} selections was recorded successfully.
             </p>
           </div>
         </div>

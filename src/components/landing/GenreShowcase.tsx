@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Info, Check, Rocket, Ghost, Flame, Eye, Smile, Clapperboard, RefreshCw, AlertCircle } from 'lucide-react';
+import { Sparkles, Info, Check, Rocket, Ghost, Flame, Eye, Smile, Clapperboard, RefreshCw, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Category, Movie } from '../../types';
 
 interface GenreShowcaseProps {
@@ -10,6 +10,8 @@ interface GenreShowcaseProps {
   isLoading?: boolean;
   error?: string | null;
   onRetry?: () => void;
+  showIntro?: boolean;
+  showCategoryTabs?: boolean;
 }
 
 export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
@@ -20,12 +22,30 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
   isLoading = false,
   error = null,
   onRetry,
+  showIntro = true,
+  showCategoryTabs = true,
 }) => {
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
+  const [activeNomineeIndex, setActiveNomineeIndex] = useState(0);
 
   // Guard active index within bounds
   const safeIndex = categories.length > 0 ? Math.min(activeCategoryIndex, categories.length - 1) : 0;
   const currentCategory = categories[safeIndex];
+  const carouselCards = currentCategory
+    ? [
+        ...currentCategory.nominees.map((movie) => ({ key: movie.id, movie, isPlaceholder: false as const })),
+        ...Array.from(
+          { length: Math.max(0, 6 - currentCategory.nominees.length) },
+          (_, index) => ({ key: `${currentCategory.id}-nominee-slot-${index}`, movie: null, isPlaceholder: true as const })
+        ),
+      ]
+    : [];
+  const safeNomineeIndex = Math.min(activeNomineeIndex, Math.max(0, carouselCards.length - 1));
+
+  const moveNominee = (direction: -1 | 1) => {
+    if (carouselCards.length === 0) return;
+    setActiveNomineeIndex((index) => (index + direction + carouselCards.length) % carouselCards.length);
+  };
 
   const getGenreIcon = (iconName: string) => {
     switch (iconName) {
@@ -39,9 +59,9 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
   };
 
   return (
-    <section id="categories" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <section id={showCategoryTabs ? 'categories' : undefined} className="py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       {/* Section Header */}
-      <div className="text-center max-w-3xl mx-auto mb-12">
+      {showIntro && <div className="text-center max-w-3xl mx-auto mb-12">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#062831]/60 border border-[#00c2e0]/30 text-[#00f5d4] text-[11px] uppercase tracking-widest font-semibold mb-3">
           <Clapperboard className="w-3.5 h-3.5" />
           <span>Genre-Based Nominations</span>
@@ -52,7 +72,7 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
         <p className="text-sm sm:text-base text-[#a5f3fc]/70 font-light">
           Every nominee is a celebrated film. Select one movie per genre. Notice: A movie may compete in multiple categories!
         </p>
-      </div>
+      </div>}
 
       {/* 1. LOADING STATE */}
       {isLoading && (
@@ -127,7 +147,7 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
             No Active Categories Available
           </h3>
           <p className="text-xs text-[#a5f3fc]/60">
-            Nominations are currently being finalized by the SPark Cultural Committee. Please check back soon.
+            Nominations are currently being finalized by the SPark Editorial Committee. Please check back soon.
           </p>
         </div>
       )}
@@ -136,7 +156,7 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
       {!isLoading && !error && currentCategory && (
         <>
           {/* Genre Category Pills / Tabs (Horizontally scrollable on mobile) */}
-          <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-4 mb-10 no-scrollbar">
+          {showCategoryTabs && <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-4 mb-10 no-scrollbar">
             {categories.map((cat, idx) => {
               const isActive = idx === safeIndex;
               const isSelectedInCat = !!selectedPicks[cat.id];
@@ -160,7 +180,7 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
                 </button>
               );
             })}
-          </div>
+          </div>}
 
           {/* Active Category Description Header */}
           <div className="p-6 rounded-2xl bg-gradient-to-r from-[#050d1a] via-[#062831]/40 to-[#050d1a] border border-[#00c2e0]/20 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -184,110 +204,147 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
             </div>
           </div>
 
-          {/* Nominees Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {currentCategory.nominees.map((movie) => {
-              const isSelected = selectedPicks[currentCategory.id] === movie.id;
+          {/* Featured nominee carousel */}
+          <div className="relative mx-auto mt-8 h-[440px] max-w-5xl overflow-hidden sm:h-[470px]">
+            {carouselCards.map((card, index) => {
+              const offset = index - safeNomineeIndex;
+              const isVisible = Math.abs(offset) <= 1;
+              const isActive = offset === 0;
+              const movie = card.movie;
+              const isSelected = movie !== null && selectedPicks[currentCategory.id] === movie.id;
 
               return (
-                <div
-                  key={movie.id}
-                  className={`group relative rounded-2xl overflow-hidden transition-all duration-300 flex flex-col justify-between border ${
-                    isSelected
-                      ? 'bg-[#062831]/80 border-[#00f5d4] shadow-[0_0_30px_rgba(0,245,212,0.35)] scale-[1.01]'
-                      : 'bg-[#050d1a]/80 border-[#00c2e0]/20 hover:border-[#00c2e0]/50 hover:shadow-[0_0_20px_rgba(0,194,224,0.2)]'
-                  }`}
+                <article
+                  key={card.key}
+                  aria-hidden={!isVisible}
+                  inert={!isVisible}
+                  className={`absolute top-2 left-1/2 flex h-[410px] w-[min(78vw,290px)] flex-col overflow-hidden rounded-xl border transition-[translate,transform,opacity,border-color,box-shadow] duration-500 ease-out sm:h-[438px] ${
+                    card.isPlaceholder
+                      ? 'border-[#00c2e0]/15 bg-[#050d1a]/90'
+                      : isSelected
+                        ? 'border-[#00f5d4] bg-[#050d1a] shadow-[0_0_34px_rgba(0,245,212,0.35)]'
+                        : 'border-[#00c2e0]/25 bg-[#050d1a]'
+                  } ${isActive && !card.isPlaceholder ? 'ring-1 ring-[#00f5d4]/55 shadow-[0_0_28px_rgba(0,194,224,0.25)]' : ''}`}
+                  style={{
+                    translate: `${offset * 108}% 0`,
+                    transform: `translateX(-50%) scale(${isActive ? 1 : 0.88})`,
+                    opacity: isVisible ? (isActive ? 1 : 0.58) : 0,
+                    zIndex: isActive ? 3 : 2 - Math.abs(offset),
+                    pointerEvents: isVisible ? 'auto' : 'none',
+                  }}
                 >
-                  {/* Poster Image Container */}
-                  <div className="relative aspect-[2/3] w-full overflow-hidden bg-[#02050b]">
-                    <img
-                      src={movie.poster_url}
-                      alt={movie.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      loading="lazy"
-                      onError={(e) => {
-                        // Graceful fallback to dark cinema gradient if image URL fails
-                        const target = e.currentTarget;
-                        target.style.opacity = '0.3';
-                      }}
-                    />
-
-                    {/* Vignette Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#050d1a] via-transparent to-transparent opacity-90" />
-
-                    {/* Top Corner Pill: Year & Quick Info */}
-                    <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
-                      <span className="px-2 py-0.5 rounded bg-black/60 backdrop-blur-md text-[10px] font-bold text-[#a5f3fc] border border-white/10">
-                        {movie.release_year || 2024}
-                      </span>
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onMovieClick(movie);
-                        }}
-                        className="p-1.5 rounded-full bg-black/60 hover:bg-[#062831] text-[#a5f3fc] hover:text-white border border-[#00c2e0]/30 transition-all backdrop-blur-md"
-                        title="Read Synopsis"
-                      >
-                        <Info className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-
-                    {/* Selected Indicator Ribbon */}
-                    {isSelected && (
-                      <div className="absolute inset-x-0 bottom-0 py-1.5 bg-gradient-to-r from-[#00c2e0] to-[#00f5d4] text-[#02050b] text-[11px] font-extrabold uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-[0_0_15px_#00f5d4]">
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
-                        <span>Selected for {currentCategory.title}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Card Body */}
-                  <div className="p-4 sm:p-5 flex flex-col justify-between flex-grow">
-                    <div>
-                      <h4 className="font-['Cinzel',serif] text-base font-bold text-white group-hover:text-[#a5f3fc] transition-colors line-clamp-1 mb-1">
-                        {movie.title}
-                      </h4>
-                      <p className="text-xs text-[#a5f3fc]/60 mb-2">
-                        Dir. {movie.director}
-                      </p>
-                      <p className="text-xs text-[#e0f7fa]/70 line-clamp-2 leading-relaxed font-light mb-4">
-                        {movie.synopsis}
-                      </p>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="pt-2 flex items-center gap-2">
-                      <button
-                        onClick={() => onSelectMovie(currentCategory.id, movie.id)}
-                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 ${
-                          isSelected
-                            ? 'bg-[#00f5d4] text-[#02050b] shadow-[0_0_15px_rgba(0,245,212,0.4)]'
-                            : 'bg-[#062831] hover:bg-[#00c2e0]/20 text-[#a5f3fc] hover:text-white border border-[#00c2e0]/30 hover:border-[#00c2e0]/60'
-                        }`}
-                      >
-                        {isSelected ? (
-                          <>
-                            <Check className="w-3.5 h-3.5" />
-                            Selected
-                          </>
-                        ) : (
-                          'Vote Movie'
+                  {movie ? (
+                    <>
+                      <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-[#02050b]">
+                        <img
+                          src={movie.poster_url}
+                          alt={movie.title}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                          onError={(event) => { event.currentTarget.style.opacity = '0.3'; }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#050d1a] via-transparent to-transparent opacity-90" />
+                        <div className="absolute left-3 right-3 top-3 z-10 flex items-center justify-between">
+                          <span className="rounded bg-black/65 px-2 py-1 text-[10px] font-bold text-[#a5f3fc]">{movie.release_year || 2024}</span>
+                          <button
+                            type="button"
+                            onClick={() => onMovieClick(movie)}
+                            className="rounded-full border border-[#00c2e0]/35 bg-black/65 p-1.5 text-[#a5f3fc] transition hover:bg-[#062831] hover:text-white"
+                            title="Read synopsis"
+                            aria-label={`Read synopsis for ${movie.title}`}
+                          >
+                            <Info className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                        {isSelected && (
+                          <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 bg-gradient-to-r from-[#00c2e0] to-[#00f5d4] py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-[#02050b]">
+                            <Check className="h-3.5 w-3.5 stroke-[3]" /> Selected for {currentCategory.title}
+                          </div>
                         )}
-                      </button>
-
-                      <button
-                        onClick={() => onMovieClick(movie)}
-                        className="p-2.5 rounded-xl bg-[#050d1a] hover:bg-[#062831] border border-[#00c2e0]/20 text-[#a5f3fc] hover:text-white transition-colors"
-                        title="Movie Details"
-                      >
-                        <Info className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                      </div>
+                      <div className="flex flex-1 flex-col justify-between p-4">
+                        <div>
+                          <h4 className="line-clamp-2 font-['Cinzel',serif] text-base font-bold leading-tight text-white">{movie.title}</h4>
+                          <p className="mt-1 text-xs text-[#a5f3fc]/60">Dir. {movie.director}</p>
+                          <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-[#e0f7fa]/75">{movie.synopsis}</p>
+                        </div>
+                        <div className="mt-3 flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => onSelectMovie(currentCategory.id, movie.id)}
+                            className={`flex-1 rounded-lg py-2.5 text-[11px] font-bold uppercase tracking-wider transition ${
+                              isSelected
+                                ? 'bg-[#00f5d4] text-[#02050b]'
+                                : 'bg-[#062831] text-[#a5f3fc] hover:bg-[#00c2e0]/25 hover:text-white'
+                            }`}
+                          >
+                            {isSelected ? 'Selected' : 'Vote Now'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onMovieClick(movie)}
+                            className="rounded-lg border border-[#00c2e0]/20 bg-[#050d1a] p-2.5 text-[#a5f3fc] transition hover:bg-[#062831] hover:text-white"
+                            title="Movie details"
+                            aria-label={`Movie details for ${movie.title}`}
+                          >
+                            <Info className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="relative flex aspect-[4/3] w-full shrink-0 items-center justify-center overflow-hidden bg-[radial-gradient(ellipse_at_50%_35%,_rgba(0,194,224,0.18),_transparent_65%),linear-gradient(145deg,#071524,#02050b)]">
+                        <div className="absolute inset-3 rounded-lg border border-dashed border-[#00c2e0]/25" />
+                        <img src="/spark-logo.png" alt="" aria-hidden="true" className="h-16 w-12 object-contain opacity-35" />
+                        <span className="absolute bottom-3 left-3 rounded bg-black/40 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#a5f3fc]/65">Nominee slot</span>
+                      </div>
+                      <div className="flex flex-1 flex-col justify-between p-4">
+                        <div>
+                          <h4 className="font-['Cinzel',serif] text-base font-bold text-[#a5f3fc]/60">Nominee details pending</h4>
+                          <p className="mt-2 text-xs leading-relaxed text-[#a5f3fc]/45">This display slot is not an eligible nominee and cannot be selected.</p>
+                        </div>
+                        <button type="button" disabled className="mt-3 w-full cursor-not-allowed rounded-lg border border-white/5 bg-[#062831]/45 py-2.5 text-[11px] font-bold uppercase tracking-wider text-[#a5f3fc]/35">Coming Soon</button>
+                      </div>
+                    </>
+                  )}
+                </article>
               );
             })}
+
+            {carouselCards.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => moveNominee(-1)}
+                  aria-label="Previous nominee card"
+                  className="absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-full border border-[#00c2e0]/30 bg-[#030712]/85 p-2.5 text-[#a5f3fc] shadow-lg transition hover:border-[#00f5d4]/60 hover:text-white"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => moveNominee(1)}
+                  aria-label="Next nominee card"
+                  className="absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-full border border-[#00c2e0]/30 bg-[#030712]/85 p-2.5 text-[#a5f3fc] shadow-lg transition hover:border-[#00f5d4]/60 hover:text-white"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </>
+            )}
+          </div>
+
+          <div className="mt-2 flex items-center justify-center gap-2" aria-label="Carousel position">
+            {carouselCards.map((card, index) => (
+              <button
+                key={card.key}
+                type="button"
+                onClick={() => setActiveNomineeIndex(index)}
+                aria-label={card.movie ? `Show ${card.movie.title}` : `Show nominee placeholder ${index + 1}`}
+                aria-current={index === safeNomineeIndex ? 'true' : undefined}
+                className={`h-1.5 rounded-full transition-all ${index === safeNomineeIndex ? 'w-6 bg-[#00f5d4]' : 'w-1.5 bg-[#00c2e0]/40 hover:bg-[#00c2e0]'}`}
+              />
+            ))}
           </div>
         </>
       )}

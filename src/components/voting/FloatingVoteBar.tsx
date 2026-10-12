@@ -4,16 +4,20 @@ import { Award, ChevronRight } from 'lucide-react';
 interface FloatingVoteBarProps {
   totalCategories: number;
   selectedCount: number;
+  requiredCount: number;
+  selectedRequiredCount: number;
   onReviewClick: () => void;
 }
 
 export const FloatingVoteBar: React.FC<FloatingVoteBarProps> = ({
   totalCategories,
   selectedCount,
+  requiredCount,
+  selectedRequiredCount,
   onReviewClick
 }) => {
   const percentage = Math.round((selectedCount / totalCategories) * 100);
-  const isComplete = selectedCount === totalCategories && totalCategories > 0;
+  const isComplete = selectedCount > 0 && selectedRequiredCount === requiredCount;
 
   return (
     <aside 
