@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Sparkles, Info, Check, Rocket, Ghost, Flame, Eye, Smile, Clapperboard, RefreshCw, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Category, Movie } from '../../types';
 import { Reveal } from '../common/Reveal';
@@ -47,6 +47,28 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
     if (carouselCards.length === 0) return;
     setActiveNomineeIndex((index) => (index + direction + carouselCards.length) % carouselCards.length);
   };
+
+  // ── Drag / swipe support ─────────────────────────────────────────────────
+  const dragStartX = useRef<number | null>(null);
+  const isDragging = useRef(false);
+  const DRAG_THRESHOLD = 50; // px needed to trigger a slide
+
+  const onDragStart = useCallback((clientX: number) => {
+    dragStartX.current = clientX;
+    isDragging.current = false;
+  }, []);
+
+  const onDragEnd = useCallback((clientX: number) => {
+    if (dragStartX.current === null) return;
+    const delta = clientX - dragStartX.current;
+    dragStartX.current = null;
+    if (Math.abs(delta) >= DRAG_THRESHOLD) {
+      isDragging.current = true; // flag to suppress click handlers
+      moveNominee(delta < 0 ? 1 : -1);
+      // Reset the flag after the synthetic click event has been processed
+      setTimeout(() => { isDragging.current = false; }, 0);
+    }
+  }, [carouselCards.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getGenreIcon = (iconName: string) => {
     switch (iconName) {
@@ -208,9 +230,23 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
           </Reveal>
 
           {/* Featured nominee carousel */}
-          <div className="relative mx-auto mt-8 h-[440px] max-w-5xl overflow-hidden sm:h-[470px]">
+          <div
+            className="relative mx-auto mt-8 h-[440px] max-w-5xl overflow-hidden sm:h-[470px] select-none"
+            style={{ cursor: 'grab' }}
+            /* Mouse drag */
+            onMouseDown={(e) => onDragStart(e.clientX)}
+            onMouseUp={(e) => onDragEnd(e.clientX)}
+            onMouseLeave={() => { dragStartX.current = null; }}
+            /* Touch swipe */
+            onTouchStart={(e) => onDragStart(e.touches[0].clientX)}
+            onTouchEnd={(e) => onDragEnd(e.changedTouches[0].clientX)}
+          >
             {carouselCards.map((card, index) => {
-              const offset = index - safeNomineeIndex;
+              // Wrap offset to shortest circular distance for infinite-loop carousel
+              const n = carouselCards.length;
+              const rawOffset = index - safeNomineeIndex;
+              const normalizedOffset = n > 1 ? ((rawOffset % n) + n) % n : 0;
+              const offset = normalizedOffset > n / 2 ? normalizedOffset - n : normalizedOffset;
               const isVisible = Math.abs(offset) <= 1;
               const isActive = offset === 0;
               const movie = card.movie;
