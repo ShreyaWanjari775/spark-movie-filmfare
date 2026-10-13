@@ -38,7 +38,7 @@ BEGIN
     FROM jsonb_array_elements(p_choices) AS choice(value)
     WHERE CASE
       WHEN jsonb_typeof(choice.value) = 'object'
-        THEN jsonb_object_length(choice.value) <> 2
+        THEN (SELECT count(*) FROM jsonb_object_keys(choice.value)) <> 2
       ELSE true
     END
   ) THEN

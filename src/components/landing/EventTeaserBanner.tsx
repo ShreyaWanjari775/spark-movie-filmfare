@@ -1,5 +1,6 @@
 import React from 'react';
 import { Film, Sparkles, Video, ArrowRight } from 'lucide-react';
+import { Reveal } from '../common/Reveal';
 
 interface EventTeaserBannerProps {
   onVoteClick: () => void;
@@ -19,7 +20,7 @@ export const EventTeaserBanner: React.FC<EventTeaserBannerProps> = ({ onVoteClic
         <div className="absolute inset-0 bg-gradient-to-r from-[#030712] via-[#050d1a]/90 to-[#062831]/75" />
 
         <div className="relative z-10 p-8 sm:p-12 lg:p-16 flex flex-col lg:flex-row items-center justify-between gap-10">
-          <div className="max-w-2xl space-y-4 text-center lg:text-left">
+          <Reveal delay={0} className="max-w-2xl space-y-4 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#062831]/90 border border-[#00c2e0]/40 text-[#00f5d4] text-[11px] font-bold uppercase tracking-widest backdrop-blur-md">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Cultural Fest Highlight</span>
@@ -46,10 +47,10 @@ export const EventTeaserBanner: React.FC<EventTeaserBannerProps> = ({ onVoteClic
                 Certified Audience Winners
               </span>
             </div>
-          </div>
+          </Reveal>
 
           {/* Right Action Box */}
-          <div className="flex-shrink-0 w-full sm:w-auto flex flex-col items-center">
+          <Reveal delay={150} className="flex-shrink-0 w-full sm:w-auto flex flex-col items-center">
             <div className="p-6 rounded-2xl bg-[#030712]/90 border border-[#00c2e0]/35 text-center space-y-4 max-w-sm w-full backdrop-blur-md shadow-[0_0_30px_rgba(0,194,224,0.2)]">
               <div className="w-12 h-12 mx-auto rounded-full bg-[#062831] border border-[#00c2e0]/40 flex items-center justify-center">
                 <img 
@@ -76,7 +77,7 @@ export const EventTeaserBanner: React.FC<EventTeaserBannerProps> = ({ onVoteClic
                 <ArrowRight className="w-4 h-4 text-white" />
               </button>
             </div>
-          </div>
+          </Reveal>
         </div>
       </div>
     </section>

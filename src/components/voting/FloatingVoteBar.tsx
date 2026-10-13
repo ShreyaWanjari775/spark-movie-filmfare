@@ -22,7 +22,7 @@ export const FloatingVoteBar: React.FC<FloatingVoteBarProps> = ({
   return (
     <aside 
       aria-label="Ballot submission progress"
-      className="fixed bottom-0 inset-x-0 z-40 p-3 sm:p-4 bg-gradient-to-t from-[#02050b] via-[#030712]/95 to-transparent pointer-events-none"
+      className="fixed bottom-0 inset-x-0 z-40 p-3 sm:p-4 bg-gradient-to-t from-[#02050b] via-[#030712]/95 to-transparent pointer-events-none animate-slide-up-bar"
     >
       <div className="max-w-3xl mx-auto pointer-events-auto">
         <div className="p-3 sm:p-4 rounded-2xl bg-[#050d1a]/95 border border-[#00c2e0]/35 backdrop-blur-xl shadow-[0_0_35px_rgba(0,194,224,0.3)] flex items-center justify-between gap-4">

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { FlameIntro } from './components/common/FlameIntro';
 import { Navbar } from './components/common/Navbar';
 import { HeroSection } from './components/landing/HeroSection';
@@ -57,6 +57,39 @@ export function App() {
       setIsLoadingCategories(false);
     }
   }, []);
+
+  // Scroll progress bar: writes --scroll-pct CSS variable via rAF (no setState per frame)
+  const rafIdRef = useRef<number>(0);
+  useEffect(() => {
+    if (view !== 'voting') {
+      // Reset when leaving voting view
+      document.documentElement.style.setProperty('--scroll-pct', '0');
+      return;
+    }
+
+    const update = () => {
+      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+      const max = scrollHeight - clientHeight;
+      const pct = max > 0 ? scrollTop / max : 0;
+      document.documentElement.style.setProperty('--scroll-pct', String(pct));
+      rafIdRef.current = 0; // mark as idle
+    };
+
+    const onScroll = () => {
+      if (rafIdRef.current === 0) {
+        rafIdRef.current = requestAnimationFrame(update);
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    update(); // set initial value
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+      document.documentElement.style.setProperty('--scroll-pct', '0');
+    };
+  }, [view]);
 
   useEffect(() => {
     loadCategories();
@@ -140,6 +173,8 @@ export function App() {
 
           {view === 'voting' && (
             <>
+              {/* Thin scroll-progress bar driven by CSS var --scroll-pct */}
+              <div className="scroll-progress-bar" aria-hidden="true" />
               <div id="categories" className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 pt-8 sm:px-6 lg:px-8">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#00f5d4]">SPark Movie Filmfare</p>

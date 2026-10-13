@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Info, Check, Rocket, Ghost, Flame, Eye, Smile, Clapperboard, RefreshCw, AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { Category, Movie } from '../../types';
+import { Reveal } from '../common/Reveal';
 
 interface GenreShowcaseProps {
   categories: Category[];
@@ -182,27 +183,29 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
             })}
           </div>}
 
-          {/* Active Category Description Header */}
-          <div className="p-6 rounded-2xl bg-gradient-to-r from-[#050d1a] via-[#062831]/40 to-[#050d1a] border border-[#00c2e0]/20 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[#00f5d4]">{getGenreIcon(currentCategory.icon)}</span>
-                <h3 className="font-['Cinzel',serif] text-xl sm:text-2xl font-bold text-white tracking-wide">
-                  {currentCategory.title}
-                </h3>
+          {/* Active Category Description Header — re-keyed so Reveal re-fires on category switch */}
+          <Reveal key={`header-${currentCategory.id}`} delay={0} className="w-full">
+            <div className="p-6 rounded-2xl bg-gradient-to-r from-[#050d1a] via-[#062831]/40 to-[#050d1a] border border-[#00c2e0]/20 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[#00f5d4]">{getGenreIcon(currentCategory.icon)}</span>
+                  <h3 className="font-['Cinzel',serif] text-xl sm:text-2xl font-bold text-white tracking-wide">
+                    {currentCategory.title}
+                  </h3>
+                </div>
+                <p className="text-xs sm:text-sm text-[#00c2e0] mt-1 font-medium">
+                  {currentCategory.tagline}
+                </p>
+                <p className="text-xs text-[#a5f3fc]/60 mt-1 max-w-2xl">
+                  {currentCategory.description}
+                </p>
               </div>
-              <p className="text-xs sm:text-sm text-[#00c2e0] mt-1 font-medium">
-                {currentCategory.tagline}
-              </p>
-              <p className="text-xs text-[#a5f3fc]/60 mt-1 max-w-2xl">
-                {currentCategory.description}
-              </p>
-            </div>
 
-            <div className="flex-shrink-0 px-3.5 py-1.5 rounded-lg bg-[#030712] border border-[#00c2e0]/30 text-xs text-[#a5f3fc]">
-              <span className="text-white font-bold">{currentCategory.nominees.length}</span> Nominated Films
+              <div className="flex-shrink-0 px-3.5 py-1.5 rounded-lg bg-[#030712] border border-[#00c2e0]/30 text-xs text-[#a5f3fc]">
+                <span className="text-white font-bold">{currentCategory.nominees.length}</span> Nominated Films
+              </div>
             </div>
-          </div>
+          </Reveal>
 
           {/* Featured nominee carousel */}
           <div className="relative mx-auto mt-8 h-[440px] max-w-5xl overflow-hidden sm:h-[470px]">
@@ -222,7 +225,7 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
                     card.isPlaceholder
                       ? 'border-[#00c2e0]/15 bg-[#050d1a]/90'
                       : isSelected
-                        ? 'border-[#00f5d4] bg-[#050d1a] shadow-[0_0_34px_rgba(0,245,212,0.35)]'
+                        ? 'border-[#00f5d4] bg-[#050d1a] shadow-[0_0_34px_rgba(0,245,212,0.35)] nominee-selected-ring'
                         : 'border-[#00c2e0]/25 bg-[#050d1a]'
                   } ${isActive && !card.isPlaceholder ? 'ring-1 ring-[#00f5d4]/55 shadow-[0_0_28px_rgba(0,194,224,0.25)]' : ''}`}
                   style={{
@@ -334,6 +337,7 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
             )}
           </div>
 
+          <Reveal delay={80} className="w-full">
           <div className="mt-2 flex items-center justify-center gap-2" aria-label="Carousel position">
             {carouselCards.map((card, index) => (
               <button
@@ -346,6 +350,7 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
               />
             ))}
           </div>
+          </Reveal>
         </>
       )}
     </section>
