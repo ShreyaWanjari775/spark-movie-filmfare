@@ -20,7 +20,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onEventClick, onAwa
               <img
                 src="/spark-logo.png"
                 alt="SPark Logo"
-                className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(0,194,224,0.4)] group-hover:drop-shadow-[0_0_14px_rgba(0,245,212,0.8)] transition-all duration-300"
+                className="w-full h-full object-contain transition-all duration-300"
               />
           </div>
           <div className="flex flex-col">
