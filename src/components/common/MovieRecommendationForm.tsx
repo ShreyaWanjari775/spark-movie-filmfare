@@ -31,7 +31,7 @@ export const MovieRecommendationForm: React.FC = () => {
     <section className="mx-auto w-full max-w-2xl rounded-2xl border border-[#00c2e0]/30 bg-[#050d1a]/90 p-5 text-left shadow-[0_0_30px_rgba(0,194,224,0.12)] sm:p-6">
       <h2 className="font-['Cinzel',serif] text-lg font-bold text-white">Recommend a Movie</h2>
       <p className="mt-1 text-xs text-[#a5f3fc]/70">
-        Have a film in mind for a future FnC screening? Let us know.
+        Have a film in mind for FnC screening? Let us know.
       </p>
 
       <form onSubmit={handleSubmit} className="mt-4 space-y-3">

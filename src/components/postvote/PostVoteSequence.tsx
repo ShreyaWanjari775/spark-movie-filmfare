@@ -12,6 +12,7 @@ interface PostVoteSequenceProps {
 
 export const PostVoteSequence: React.FC<PostVoteSequenceProps> = ({
   isOpen,
+  onClose,
   selectedCount
 }) => {
   // Step 1: "BALLOT SEALED"
@@ -164,6 +165,7 @@ export const PostVoteSequence: React.FC<PostVoteSequenceProps> = ({
               href={FNC_REGISTRATION_URL}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={onClose}
               className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#062831] via-[#00c2e0] to-[#00f5d4] text-white font-bold text-xs uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(0,194,224,0.5)] hover:scale-105 active:scale-95 transition-all"
             >
               SEE YOU AT FnC

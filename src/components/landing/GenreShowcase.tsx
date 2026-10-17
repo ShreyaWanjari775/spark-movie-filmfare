@@ -32,15 +32,7 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
   // Guard active index within bounds
   const safeIndex = categories.length > 0 ? Math.min(activeCategoryIndex, categories.length - 1) : 0;
   const currentCategory = categories[safeIndex];
-  const carouselCards = currentCategory
-    ? [
-        ...currentCategory.nominees.map((movie) => ({ key: movie.id, movie, isPlaceholder: false as const })),
-        ...Array.from(
-          { length: Math.max(0, 6 - currentCategory.nominees.length) },
-          (_, index) => ({ key: `${currentCategory.id}-nominee-slot-${index}`, movie: null, isPlaceholder: true as const })
-        ),
-      ]
-    : [];
+  const carouselCards = currentCategory?.nominees ?? [];
   const safeNomineeIndex = Math.min(activeNomineeIndex, Math.max(0, carouselCards.length - 1));
 
   const moveNominee = (direction: -1 | 1) => {
@@ -249,21 +241,19 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
               const offset = normalizedOffset > n / 2 ? normalizedOffset - n : normalizedOffset;
               const isVisible = Math.abs(offset) <= 1;
               const isActive = offset === 0;
-              const movie = card.movie;
-              const isSelected = movie !== null && selectedPicks[currentCategory.id] === movie.id;
+              const movie = card;
+              const isSelected = selectedPicks[currentCategory.id] === movie.id;
 
               return (
                 <article
-                  key={card.key}
+                  key={card.id}
                   aria-hidden={!isVisible}
                   inert={!isVisible}
                   className={`absolute top-2 left-1/2 flex h-[410px] w-[min(78vw,290px)] flex-col overflow-hidden rounded-xl border transition-[translate,transform,opacity,border-color,box-shadow] duration-500 ease-out sm:h-[438px] ${
-                    card.isPlaceholder
-                      ? 'border-[#00c2e0]/15 bg-[#050d1a]/90'
-                      : isSelected
-                        ? 'border-[#00f5d4] bg-[#050d1a] shadow-[0_0_34px_rgba(0,245,212,0.35)] nominee-selected-ring'
-                        : 'border-[#00c2e0]/25 bg-[#050d1a]'
-                  } ${isActive && !card.isPlaceholder ? 'ring-1 ring-[#00f5d4]/55 shadow-[0_0_28px_rgba(0,194,224,0.25)]' : ''}`}
+                    isSelected
+                      ? 'border-[#00f5d4] bg-[#050d1a] shadow-[0_0_34px_rgba(0,245,212,0.35)] nominee-selected-ring'
+                      : 'border-[#00c2e0]/25 bg-[#050d1a]'
+                  } ${isActive ? 'ring-1 ring-[#00f5d4]/55 shadow-[0_0_28px_rgba(0,194,224,0.25)]' : ''}`}
                   style={{
                     translate: `${offset * 108}% 0`,
                     transform: `translateX(-50%) scale(${isActive ? 1 : 0.88})`,
@@ -272,8 +262,7 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
                     pointerEvents: isVisible ? 'auto' : 'none',
                   }}
                 >
-                  {movie ? (
-                    <>
+                  <>
                       <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden bg-[#02050b]">
                         <img
                           src={movie.poster_url}
@@ -332,23 +321,7 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
                           </button>
                         </div>
                       </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="relative flex aspect-[4/3] w-full shrink-0 items-center justify-center overflow-hidden bg-[radial-gradient(ellipse_at_50%_35%,_rgba(0,194,224,0.18),_transparent_65%),linear-gradient(145deg,#071524,#02050b)]">
-                        <div className="absolute inset-3 rounded-lg border border-dashed border-[#00c2e0]/25" />
-                        <img src="/spark-logo.png" alt="" aria-hidden="true" className="h-16 w-12 object-contain opacity-35" />
-                        <span className="absolute bottom-3 left-3 rounded bg-black/40 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#a5f3fc]/65">Nominee slot</span>
-                      </div>
-                      <div className="flex flex-1 flex-col justify-between p-4">
-                        <div>
-                          <h4 className="font-['Cinzel',serif] text-base font-bold text-[#a5f3fc]/60">Nominee details pending</h4>
-                          <p className="mt-2 text-xs leading-relaxed text-[#a5f3fc]/45">This display slot is not an eligible nominee and cannot be selected.</p>
-                        </div>
-                        <button type="button" disabled className="mt-3 w-full cursor-not-allowed rounded-lg border border-white/5 bg-[#062831]/45 py-2.5 text-[11px] font-bold uppercase tracking-wider text-[#a5f3fc]/35">Coming Soon</button>
-                      </div>
-                    </>
-                  )}
+                  </>
                 </article>
               );
             })}
@@ -377,12 +350,12 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
 
           <Reveal delay={80} className="w-full">
           <div className="mt-2 flex items-center justify-center gap-2" aria-label="Carousel position">
-            {carouselCards.map((card, index) => (
+            {carouselCards.map((movie, index) => (
               <button
-                key={card.key}
+                key={movie.id}
                 type="button"
                 onClick={() => setActiveNomineeIndex(index)}
-                aria-label={card.movie ? `Show ${card.movie.title}` : `Show nominee placeholder ${index + 1}`}
+                aria-label={`Show ${movie.title}`}
                 aria-current={index === safeNomineeIndex ? 'true' : undefined}
                 className={`h-1.5 rounded-full transition-all ${index === safeNomineeIndex ? 'w-6 bg-[#00f5d4]' : 'w-1.5 bg-[#00c2e0]/40 hover:bg-[#00c2e0]'}`}
               />
