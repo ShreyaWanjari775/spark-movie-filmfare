@@ -16,6 +16,7 @@ interface DatabaseNominee {
   category_id: string;
   title: string;
   movie: string | null;
+  poster: string | null;
   is_eligible: boolean;
 }
 
@@ -87,7 +88,7 @@ export async function fetchVotingCategories(): Promise<Category[]> {
 
   const { data: nominees, error: nomineeError } = await supabase
     .from('nominees')
-    .select('id, category_id, title, movie, is_eligible')
+    .select('id, category_id, title, movie, poster, is_eligible')
     .eq('is_eligible', true);
 
   if (nomineeError) {
@@ -117,7 +118,7 @@ export async function fetchVotingCategories(): Promise<Category[]> {
       title: nominee.title,
       movie: nominee.movie,
       release_year: 2024,
-      poster_url: meta.poster,
+      poster_url: nominee.poster ?? meta.poster,
       synopsis: `Official nomination for ${nominee.title} in the ${formattedTitle} category. Final winners unveiled live during FnC Movie Night.`,
       director: 'Festival Selection',
       genres: [category.name],
