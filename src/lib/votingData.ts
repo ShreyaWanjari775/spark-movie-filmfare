@@ -1,6 +1,8 @@
 import { supabase } from './supabase';
-import { hasAlreadyVoted, markBallotSubmitted } from './votingStorage';
+import { hasAlreadyVoted, markBallotSubmitted, saveSubmittedPicks } from './votingStorage';
+import { MOVIES } from '../data/mockData';
 import type { Category, Movie } from '../types';
+import type { SubmittedPick } from '../types/shelf';
 
 interface DatabaseCategory {
   id: string;
@@ -13,6 +15,7 @@ interface DatabaseNominee {
   id: string;
   category_id: string;
   title: string;
+  movie: string | null;
   is_eligible: boolean;
 }
 
@@ -84,7 +87,7 @@ export async function fetchVotingCategories(): Promise<Category[]> {
 
   const { data: nominees, error: nomineeError } = await supabase
     .from('nominees')
-    .select('id, category_id, title, is_eligible')
+    .select('id, category_id, title, movie, is_eligible')
     .eq('is_eligible', true);
 
   if (nomineeError) {
@@ -107,13 +110,12 @@ export async function fetchVotingCategories(): Promise<Category[]> {
       poster: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=800&auto=format&fit=crop',
     };
 
-    const formattedTitle = category.name.toLowerCase().startsWith('best ')
-      ? category.name
-      : `Best ${category.name}`;
+    const formattedTitle = category.name;
 
     const movies: Movie[] = categoryNominees.map((nominee) => ({
       id: nominee.id,
       title: nominee.title,
+      movie: nominee.movie,
       release_year: 2024,
       poster_url: meta.poster,
       synopsis: `Official nomination for ${nominee.title} in the ${formattedTitle} category. Final winners unveiled live during FnC Movie Night.`,
@@ -133,6 +135,34 @@ export async function fetchVotingCategories(): Promise<Category[]> {
       nominees: movies,
     };
   });
+}
+
+export async function submitMovieRecommendation(
+  recommendation: string
+): Promise<{ success: boolean; error?: string }> {
+  const movieRec = recommendation.trim();
+  if (!movieRec) {
+    return { success: false, error: 'Please enter a movie recommendation.' };
+  }
+
+  try {
+    const { error } = await supabase
+      .from('recs')
+      .insert({ movie_rec: movieRec });
+
+    if (error) {
+      console.warn('Movie recommendation submission error:', error);
+      return { success: false, error: error.message || 'Could not submit your recommendation.' };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('Unexpected error submitting movie recommendation:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Network or connection error. Please try again.',
+    };
+  }
 }
 
 export interface SubmitBallotResult {
@@ -195,6 +225,26 @@ export async function submitAnonymousBallot(
     // 4. Mark successful ballot in localStorage ONLY AFTER confirmed database insert
     markBallotSubmitted();
 
+    const savedAt = new Date().toISOString();
+    const snapshotPicks: SubmittedPick[] = categories.map((cat) => {
+      const nomineeId = picks[cat.id];
+      let nominee = nomineeId ? cat.nominees.find((n) => n.id === nomineeId) : undefined;
+      if (!nominee && nomineeId) {
+        nominee = Object.values(MOVIES).find((m) => m.id === nomineeId);
+      }
+
+      return {
+        categoryId: cat.id,
+        categoryTitle: cat.title,
+        nomineeId: nomineeId || '',
+        nomineeTitle: nominee?.title || '',
+        posterUrl: nominee?.poster_url || '',
+        savedAt,
+      };
+    });
+
+    saveSubmittedPicks(snapshotPicks);
+
     return { success: true };
   } catch (err) {
     console.error('Unexpected error submitting ballot:', err);
@@ -204,4 +254,3 @@ export async function submitAnonymousBallot(
     };
   }
 }
-

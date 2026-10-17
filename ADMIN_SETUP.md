@@ -22,8 +22,11 @@ Review and run these SQL files in order from the Supabase SQL Editor, or use you
 
 1. `supabase/migrations/20261012000000_anonymous_ballot_submission.sql`
 2. `supabase/migrations/20261012010000_single_admin_dashboard.sql`
+3. `supabase/migrations/20261017000000_public_movie_recommendations.sql`
 
 Do not run them until the schema assumptions above are confirmed. Neither migration opens voting or publishes results. The first migration installs atomic server-side ballot validation. The second creates the single-admin allowlist and dashboard/settings RPCs, and adds `get_published_results()`, which returns aggregate totals only when `results_published` is true. It never returns individual ballots.
+
+The movie recommendations migration assumes `public.recs.movie_rec` exists and accepts text. It grants only column-level insert access to `anon` and `authenticated`, and its RLS policy accepts non-empty recommendations up to 1000 characters. It does not grant read access to recommendation rows.
 
 ## Create the only admin account
 

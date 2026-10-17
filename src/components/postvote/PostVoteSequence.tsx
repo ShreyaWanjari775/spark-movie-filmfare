@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Sparkles, Play, Share2, Film, Ticket } from 'lucide-react';
+import { Lock, Sparkles, Play, Share2, Ticket } from 'lucide-react';
+import { MovieRecommendationForm } from '../common/MovieRecommendationForm';
+import { TeaserVideoModal } from '../landing/TeaserVideoModal';
+import { FNC_REGISTRATION_URL } from '../../lib/eventLinks';
 
 interface PostVoteSequenceProps {
   isOpen: boolean;
@@ -9,19 +12,18 @@ interface PostVoteSequenceProps {
 
 export const PostVoteSequence: React.FC<PostVoteSequenceProps> = ({
   isOpen,
-  onClose,
   selectedCount
 }) => {
   // Step 1: "BALLOT SEALED"
   // Step 2: "BUT THE NIGHT HASN'T EVEN STARTED YET..."
   // Step 3: Dedicated FnC Teaser Section & "SEE YOU AT FnC"
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [isPlayingVideo, setIsPlayingVideo] = useState(false);
+  const [isTeaserOpen, setIsTeaserOpen] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
       setStep(1);
-      setIsPlayingVideo(false);
+      setIsTeaserOpen(false);
       return;
     }
 
@@ -110,55 +112,27 @@ export const PostVoteSequence: React.FC<PostVoteSequenceProps> = ({
             </p>
           </div>
 
-          {/* Cinematic 16:9 Video Player Frame (Easily swappable with local file or hosted URL) */}
+          {/* Teaser video */}
           <div className="relative aspect-video w-full max-w-2xl mx-auto rounded-2xl overflow-hidden border border-[#00c2e0]/40 bg-[#050d1a] shadow-[0_0_50px_rgba(0,194,224,0.3)] group">
-            {!isPlayingVideo ? (
-              // Polished Cinematic Teaser Placeholder
-              <div 
-                className="absolute inset-0 bg-cover bg-center flex flex-col items-center justify-center cursor-pointer"
-                style={{
-                  backgroundImage: `url('https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=1200&auto=format&fit=crop')`
-                }}
-                onClick={() => setIsPlayingVideo(true)}
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-[#02050b] via-[#030712]/70 to-[#02050b]/80" />
-
-                {/* Big Glowing Play Button */}
-                <div className="relative z-10 flex flex-col items-center gap-3">
-                  <div className="w-16 sm:w-20 h-16 sm:h-20 rounded-full bg-gradient-to-tr from-[#062831] via-[#00c2e0] to-[#00f5d4] p-[2px] shadow-[0_0_35px_rgba(0,194,224,0.8)] group-hover:scale-110 transition-transform duration-300">
-                    <div className="w-full h-full rounded-full bg-[#02050b]/80 backdrop-blur-sm flex items-center justify-center text-white">
-                      <Play className="w-7 h-7 sm:w-9 sm:h-9 text-[#00f5d4] ml-1 fill-[#00f5d4]" />
-                    </div>
-                  </div>
-                  <span className="text-[11px] uppercase tracking-[0.25em] font-bold text-[#a5f3fc] drop-shadow-[0_0_8px_#00c2e0]">
-                    Watch FnC Event Teaser
-                  </span>
-                  <span className="text-[10px] text-[#a5f3fc]/50">
-                    User-controlled audio • No autoplay sound
-                  </span>
-                </div>
-              </div>
-            ) : (
-              // Active Video Player Frame (Local or Embed)
-              <div className="relative w-full h-full flex flex-col items-center justify-center bg-black">
-                <div className="text-center p-6 space-y-3">
-                  <Film className="w-10 h-10 text-[#00f5d4] mx-auto animate-pulse" />
-                  <p className="font-['Cinzel',serif] text-base text-white font-bold">
-                    [ FnC MOVIE NIGHT OFFICIAL TRAILER ]
-                  </p>
-                  <p className="text-xs text-[#a5f3fc]/70 max-w-sm">
-                    Ready to stream. Drop your local teaser MP4 or CDN URL in <code className="text-[#00f5d4] bg-[#062831] px-1.5 py-0.5 rounded">VITE_TEASER_VIDEO_URL</code>.
-                  </p>
-                  <button
-                    onClick={() => setIsPlayingVideo(false)}
-                    className="mt-2 px-4 py-1.5 rounded-lg bg-[#062831] text-[#a5f3fc] text-xs font-semibold hover:bg-[#00c2e0]/20"
-                  >
-                    Reset Video
-                  </button>
-                </div>
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={() => setIsTeaserOpen(true)}
+              className="absolute inset-0 flex flex-col items-center justify-center bg-cover bg-center"
+              style={{
+                backgroundImage: `linear-gradient(to top, rgba(2,5,11,0.9), rgba(3,7,18,0.65)), url('https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=1200&auto=format&fit=crop')`
+              }}
+              aria-label="Play FnC event teaser"
+            >
+              <span className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#00f5d4] bg-[#02050b]/80 text-[#00f5d4] shadow-[0_0_35px_rgba(0,194,224,0.8)] transition-transform group-hover:scale-110 sm:h-20 sm:w-20">
+                <Play className="ml-1 h-8 w-8 fill-current" />
+              </span>
+              <span className="mt-3 text-[11px] font-bold uppercase tracking-[0.25em] text-[#a5f3fc]">
+                Watch FnC Event Teaser
+              </span>
+            </button>
           </div>
+
+          <MovieRecommendationForm />
 
           {/* Shareable Instagram Story Digital Card */}
           <div className="max-w-md mx-auto p-5 rounded-2xl bg-[#050d1a]/80 border border-[#00c2e0]/30 shadow-[0_0_30px_rgba(0,194,224,0.15)] text-left flex items-center justify-between gap-4">
@@ -186,15 +160,21 @@ export const PostVoteSequence: React.FC<PostVoteSequenceProps> = ({
 
           {/* Simple Final CTA */}
           <div className="pt-2">
-            <button
-              onClick={onClose}
+            <a
+              href={FNC_REGISTRATION_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#062831] via-[#00c2e0] to-[#00f5d4] text-white font-bold text-xs uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(0,194,224,0.5)] hover:scale-105 active:scale-95 transition-all"
             >
               SEE YOU AT FnC
-            </button>
+            </a>
           </div>
         </div>
       )}
+      <TeaserVideoModal
+        isOpen={isTeaserOpen}
+        onClose={() => setIsTeaserOpen(false)}
+      />
     </div>
   );
 };

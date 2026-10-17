@@ -24,8 +24,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   supportingLine = "FNC MOVIE NIGHT AWARDS",
   tagline = "Every genre has a legend. Every legend deserves its moment.",
   description = "The ultimate college cinema ballot. Pick your champions across genre categories, then watch the winners take the spotlight at Movie Night.",
-  date = "APR 26, 2025",
-  venue = "AMPHITHEATRE"
+  date = "Oct 23, 2026",
+  venue = "SPIT"
 }) => {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 

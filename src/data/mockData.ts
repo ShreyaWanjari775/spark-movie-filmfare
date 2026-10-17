@@ -3,9 +3,9 @@ import type { Category, EventDetails, Movie } from '../types';
 export const EVENT_DETAILS: EventDetails = {
   title: "SPark Movie Filmfare",
   edition: "2026 Cultural Edition",
-  eventName: "FnC (Fun 'n' Culture)",
-  venue: "College Amphitheatre & Open-Air Cinema",
-  date: "Movie Night • Friday 7:00 PM",
+  eventName: "FnC (Flicks 'n Chill)",
+  venue: "Saradar Patel Institute of Technology College",
+  date: "Movie Night • 23rd October • 6:00 PM",
   tagline: "Your Voice. The Silver Screen. The Winners Revealed Live.",
   description: "Welcome to the ultimate college cinema ballot. Scan, vote for your favourite cinematic masterworks across genres, and join us under the stars as the winning films are crowned live during FnC Movie Night."
 };
@@ -177,7 +177,7 @@ export const MOCK_CATEGORIES: Category[] = [
   },
   {
     id: "cat_action",
-    title: "Best Action",
+    title: "Would never spend a day in this movie even if I was offered a million bucks",
     isRequired: true,
     tagline: "Pure Adrenaline & Spectacle",
     description: "Pulse-pounding stunts, relentless pacing, and masterfully choreographed cinematic set-pieces.",

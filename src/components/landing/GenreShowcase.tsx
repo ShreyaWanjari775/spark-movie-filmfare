@@ -283,8 +283,7 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
                           onError={(event) => { event.currentTarget.style.opacity = '0.3'; }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#050d1a] via-transparent to-transparent opacity-90" />
-                        <div className="absolute left-3 right-3 top-3 z-10 flex items-center justify-between">
-                          <span className="rounded bg-black/65 px-2 py-1 text-[10px] font-bold text-[#a5f3fc]">{movie.release_year || 2024}</span>
+                        <div className="absolute right-3 top-3 z-10">
                           <button
                             type="button"
                             onClick={() => onMovieClick(movie)}
@@ -304,8 +303,11 @@ export const GenreShowcase: React.FC<GenreShowcaseProps> = ({
                       <div className="flex flex-1 flex-col justify-between p-4">
                         <div>
                           <h4 className="line-clamp-2 font-['Cinzel',serif] text-base font-bold leading-tight text-white">{movie.title}</h4>
-                          <p className="mt-1 text-xs text-[#a5f3fc]/60">Dir. {movie.director}</p>
-                          <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-[#e0f7fa]/75">{movie.synopsis}</p>
+                          {movie.movie && (
+                            <h5 className="mt-1 line-clamp-2 text-sm font-semibold leading-tight text-[#a5f3fc]/80">
+                              {movie.movie}
+                            </h5>
+                          )}
                         </div>
                         <div className="mt-3 flex gap-2">
                           <button

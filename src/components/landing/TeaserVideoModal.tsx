@@ -1,5 +1,27 @@
 import React, { useEffect, useRef } from 'react';
 import { X, Film, Volume2 } from 'lucide-react';
+import { FNC_TEASER_VIDEO_URL } from '../../lib/eventLinks';
+
+const getYouTubeEmbedUrl = (source: string): string | null => {
+  const url = new URL(source, 'https://placeholder.invalid');
+  const hostname = url.hostname.toLowerCase();
+  const isYouTubeHost =
+    hostname === 'youtu.be' ||
+    hostname === 'youtube.com' ||
+    hostname.endsWith('.youtube.com') ||
+    hostname === 'youtube-nocookie.com' ||
+    hostname.endsWith('.youtube-nocookie.com');
+
+  if (!isYouTubeHost) return null;
+
+  const pathParts = url.pathname.split('/').filter(Boolean);
+  const videoId = hostname === 'youtu.be'
+    ? pathParts[0]
+    : url.searchParams.get('v') ??
+      (['shorts', 'embed', 'live'].includes(pathParts[0]) ? pathParts[1] : undefined);
+
+  return videoId ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}` : null;
+};
 
 interface TeaserVideoModalProps {
   isOpen: boolean;
@@ -11,10 +33,11 @@ interface TeaserVideoModalProps {
 export const TeaserVideoModal: React.FC<TeaserVideoModalProps> = ({
   isOpen,
   onClose,
-  videoSrc = '/videos/fnc-teaser.mp4',
+  videoSrc = FNC_TEASER_VIDEO_URL,
   posterSrc = 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?q=80&w=1200&auto=format&fit=crop'
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const youtubeEmbedUrl = getYouTubeEmbedUrl(videoSrc);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -74,29 +97,40 @@ export const TeaserVideoModal: React.FC<TeaserVideoModalProps> = ({
 
         {/* 16:9 Video Player Container (User-controlled playback, NO autoplay sound) */}
         <div className="relative aspect-video w-full bg-[#02050b] flex items-center justify-center overflow-hidden">
-          <video
-            ref={videoRef}
-            src={videoSrc}
-            poster={posterSrc}
-            controls
-            playsInline
-            controlsList="nodownload"
-            className="w-full h-full object-contain"
-          >
-            Your browser does not support HTML5 video streaming.
-          </video>
+          {youtubeEmbedUrl ? (
+            <iframe
+              src={youtubeEmbedUrl}
+              title="FnC Movie Night Event Teaser"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+              className="absolute inset-0 h-full w-full border-0"
+            />
+          ) : (
+            <video
+              ref={videoRef}
+              src={videoSrc}
+              poster={posterSrc}
+              controls
+              playsInline
+              controlsList="nodownload"
+              className="w-full h-full object-contain"
+            >
+              Your browser does not support HTML5 video streaming.
+            </video>
+          )}
         </div>
 
-        {/* Footer Notes & Video Source Swapper Instructions */}
+        {/* Footer Notes & Video Source Instructions */}
         <div className="px-5 py-3.5 bg-[#030712] border-t border-[#00c2e0]/15 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#a5f3fc]/70">
           <div className="flex items-center gap-2 text-[11px]">
             <Volume2 className="w-3.5 h-3.5 text-[#00f5d4]" />
             <span>Sound is user-controlled. Adjust volume on playback controls.</span>
           </div>
 
-          <div className="text-[10px] text-[#a5f3fc]/50">
-            Replace video asset anytime via <code className="text-[#00f5d4] bg-[#062831] px-1 py-0.5 rounded">public/videos/fnc-teaser.mp4</code>
-          </div>
+          {/* <div className="text-[10px] text-[#a5f3fc]/50">
+            Replace the placeholder URL in <code className="text-[#00f5d4] bg-[#062831] px-1 py-0.5 rounded">TeaserVideoModal.tsx</code>
+          </div> */}
         </div>
       </div>
     </div>

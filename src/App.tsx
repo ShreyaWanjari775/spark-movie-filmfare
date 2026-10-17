@@ -12,6 +12,7 @@ import { ReviewDrawer } from './components/voting/ReviewDrawer';
 import { PostVoteSequence } from './components/postvote/PostVoteSequence';
 import { fetchVotingCategories } from './lib/votingData';
 import { hasAlreadyVoted } from './lib/votingStorage';
+import { TrophyShelf } from './components/shelf/TrophyShelf';
 import type { Category, Movie } from './types';
 
 export function App() {
@@ -23,12 +24,16 @@ export function App() {
     }
     return true;
   });
-  const [view, setView] = useState<'home' | 'event' | 'voting' | 'rules'>('home');
+  const [hasVoted, setHasVoted] = useState(hasAlreadyVoted);
+  const [view, setView] = useState<'home' | 'event' | 'voting' | 'rules'>(() => {
+    if (hasAlreadyVoted()) return 'voting';
+    return 'home';
+  });
   const [returnView, setReturnView] = useState<'event' | 'voting'>('voting');
 
   // Dynamic Supabase Categories & Nominees state
   const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoadingCategories, setIsLoadingCategories] = useState<boolean>(true);
+  const [isLoadingCategories, setIsLoadingCategories] = useState<boolean>(!hasAlreadyVoted());
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
   // Voting ballot state: categoryId -> movieId (nomineeId)
@@ -40,7 +45,6 @@ export function App() {
   // Modal drawers
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [isPostVoteOpen, setIsPostVoteOpen] = useState(false);
-  const [hasVoted, setHasVoted] = useState(hasAlreadyVoted);
 
   // Fetch active categories and eligible nominees from Supabase
   const loadCategories = useCallback(async () => {
@@ -61,8 +65,8 @@ export function App() {
   // Scroll progress bar: writes --scroll-pct CSS variable via rAF (no setState per frame)
   const rafIdRef = useRef<number>(0);
   useEffect(() => {
-    if (view !== 'voting') {
-      // Reset when leaving voting view
+    if (view !== 'voting' || hasVoted) {
+      // Reset when leaving voting view or when on trophy shelf
       document.documentElement.style.setProperty('--scroll-pct', '0');
       return;
     }
@@ -89,11 +93,15 @@ export function App() {
       if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
       document.documentElement.style.setProperty('--scroll-pct', '0');
     };
-  }, [view]);
+  }, [view, hasVoted]);
 
   useEffect(() => {
-    loadCategories();
-  }, [loadCategories]);
+    if (!hasVoted) {
+      loadCategories();
+    } else {
+      setIsLoadingCategories(false);
+    }
+  }, [loadCategories, hasVoted]);
 
   // Toggle or select movie for category
   const handleSelectMovie = (categoryId: string, movieId: string) => {
@@ -124,6 +132,8 @@ export function App() {
   // Handle final sealing of ballot (Phase 1 preview sequence)
   const handleConfirmBallot = () => {
     setIsReviewOpen(false);
+    setHasVoted(true);
+    setView('voting');
     setIsPostVoteOpen(true);
   };
 
@@ -155,8 +165,8 @@ export function App() {
               eyebrow="SPARK EDITORIAL COMMITTEE PRESENTS"
               heading="MOVIE FILMFARE"
               supportingLine="FNC MOVIE NIGHT AWARDS"
-              tagline="Every genre has a legend. Every legend deserves its moment."
-              description="The ultimate college cinema ballot. Pick your champions across genre categories, then watch the winners take the spotlight at Movie Night."
+              tagline="The Night Has Fallen. Rise and Cast your Votes"
+              description=""
             />
           )}
 
@@ -172,44 +182,48 @@ export function App() {
           )}
 
           {view === 'voting' && (
-            <>
-              {/* Thin scroll-progress bar driven by CSS var --scroll-pct */}
-              <div className="scroll-progress-bar" aria-hidden="true" />
-              <div id="categories" className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 pt-8 sm:px-6 lg:px-8">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#00f5d4]">SPark Movie Filmfare</p>
-                  <h1 className="mt-1 font-['Cinzel',serif] text-2xl font-bold text-white">Choose your champions</h1>
+            hasVoted ? (
+              <TrophyShelf />
+            ) : (
+              <>
+                {/* Thin scroll-progress bar driven by CSS var --scroll-pct */}
+                <div className="scroll-progress-bar" aria-hidden="true" />
+                <div id="categories" className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 pt-8 sm:px-6 lg:px-8">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#00f5d4]">SPark Movie Filmfare</p>
+                    <h1 className="mt-1 font-['Cinzel',serif] text-2xl font-bold text-white">Choose your champions</h1>
+                  </div>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => openRules('voting')} className="rounded-lg border border-[#00c2e0]/35 px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#a5f3fc] transition hover:border-[#00f5d4]/60 hover:text-white">Voting Rules</button>
+                    <button type="button" onClick={() => navigateToView('home')} className="rounded-lg border border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#a5f3fc]/70 transition hover:border-[#00c2e0]/40 hover:text-white">Home</button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <button type="button" onClick={() => openRules('voting')} className="rounded-lg border border-[#00c2e0]/35 px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#a5f3fc] transition hover:border-[#00f5d4]/60 hover:text-white">Voting Rules</button>
-                  <button type="button" onClick={() => navigateToView('home')} className="rounded-lg border border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#a5f3fc]/70 transition hover:border-[#00c2e0]/40 hover:text-white">Home</button>
-                </div>
-              </div>
-              {isLoadingCategories || categoriesError || categories.length === 0 ? (
-                <GenreShowcase
-                  categories={categories}
-                  onMovieClick={(movie) => setInspectedMovie(movie)}
-                  selectedPicks={selectedPicks}
-                  onSelectMovie={handleSelectMovie}
-                  isLoading={isLoadingCategories}
-                  error={categoriesError}
-                  onRetry={loadCategories}
-                  showCategoryTabs={false}
-                />
-              ) : (
-                categories.map((category) => (
+                {isLoadingCategories || categoriesError || categories.length === 0 ? (
                   <GenreShowcase
-                    key={category.id}
-                    categories={[category]}
+                    categories={categories}
                     onMovieClick={(movie) => setInspectedMovie(movie)}
                     selectedPicks={selectedPicks}
                     onSelectMovie={handleSelectMovie}
-                    showIntro={false}
+                    isLoading={isLoadingCategories}
+                    error={categoriesError}
+                    onRetry={loadCategories}
                     showCategoryTabs={false}
                   />
-                ))
-              )}
-            </>
+                ) : (
+                  categories.map((category) => (
+                    <GenreShowcase
+                      key={category.id}
+                      categories={[category]}
+                      onMovieClick={(movie) => setInspectedMovie(movie)}
+                      selectedPicks={selectedPicks}
+                      onSelectMovie={handleSelectMovie}
+                      showIntro={false}
+                      showCategoryTabs={false}
+                    />
+                  ))
+                )}
+              </>
+            )
           )}
 
           {view === 'rules' && (
@@ -225,8 +239,8 @@ export function App() {
 
         {view === 'home' && <EventTeaserBanner onVoteClick={() => navigateToView('voting')} />}
 
-        {/* Sticky Mobile/Desktop Voting Action Bar */}
-        {view === 'voting' && (
+        {/* Sticky Mobile/Desktop Voting Action Bar (only during active ballot voting) */}
+        {view === 'voting' && !hasVoted && (
           <FloatingVoteBar
             totalCategories={categories.length}
             selectedCount={Object.keys(selectedPicks).length}
@@ -253,7 +267,10 @@ export function App() {
           }}
           onConfirmBallot={handleConfirmBallot}
           hasAlreadyVoted={hasVoted}
-          onVoteSuccess={() => setHasVoted(true)}
+          onVoteSuccess={() => {
+            setHasVoted(true);
+            setView('voting');
+          }}
         />
 
         {/* Post-Vote 3-Act Cinematic Teaser Sequence */}

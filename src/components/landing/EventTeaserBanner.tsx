@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Film, Sparkles, Video, ArrowRight } from 'lucide-react';
 import { Reveal } from '../common/Reveal';
+import { TeaserVideoModal } from './TeaserVideoModal';
+import { FNC_REGISTRATION_URL } from '../../lib/eventLinks';
 
 interface EventTeaserBannerProps {
   onVoteClick: () => void;
 }
 
 export const EventTeaserBanner: React.FC<EventTeaserBannerProps> = ({ onVoteClick }) => {
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
   return (
     <section id="about" className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <div className="relative rounded-3xl overflow-hidden border border-[#00c2e0]/30 bg-[#050d1a] shadow-[0_0_60px_rgba(0,194,224,0.15)]">
@@ -76,10 +80,23 @@ export const EventTeaserBanner: React.FC<EventTeaserBannerProps> = ({ onVoteClic
                 <span>Vote In The Ballot</span>
                 <ArrowRight className="w-4 h-4 text-white" />
               </button>
+              <a
+                href={FNC_REGISTRATION_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#062831] via-[#00c2e0] to-[#00f5d4] text-white font-bold text-xs uppercase tracking-[0.16em] hover:shadow-[0_0_25px_rgba(0,194,224,0.6)] transition-all flex items-center justify-center gap-2"
+              >
+                <span>Register for FnC</span>
+                <ArrowRight className="w-4 h-4 text-white" />
+              </a>
             </div>
           </Reveal>
         </div>
       </div>
+      <TeaserVideoModal
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+      />
     </section>
   );
 };
